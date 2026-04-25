@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDV Alpha Pro 2.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print { .no-print { display: none !important; } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#0f172a] text-slate-200 flex h-screen overflow-hidden">
+
+    <!-- MENU LATERAL -->
+    <nav class="no-print w-64 bg-[#1e293b] border-r border-slate-700 flex flex-col shadow-2xl z-40">
+        <div class="p-8">
+            <h1 class="text-2xl font-black text-blue-500 tracking-tighter italic">PDV ALPHA <span class="text-xs font-normal text-slate-500">v2.0</span></h1>
+        </div>
+
+        <div class="flex-1 px-4 space-y-1">
+            <p class="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Operacional</p>
+            
+            <a href="/" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-blue-600/10 hover:text-blue-400 transition group {{ 'bg-blue-600/10 text-blue-400' if request.path == '/' }}">
+                <span class="text-xl">🛒</span> <span class="font-bold">Vendas (PDV)</span>
+            </a>
+
+            <a href="/clientes" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-blue-600/10 hover:text-blue-400 transition group {{ 'bg-blue-600/10 text-blue-400' if request.path == '/clientes' }}">
+                <span class="text-xl">👥</span> <span class="font-bold">Clientes</span>
+            </a>
+
+            <!-- BLOCO ADMINISTRATIVO -->
+            {% if session['nivel'] == 'admin' %}
+            <div class="pt-6">
+                <p class="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Gerenciamento</p>
+                
+                <a href="/estoque" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-blue-600/10 hover:text-blue-400 transition group {{ 'bg-blue-600/10 text-blue-400' if request.path == '/estoque' }}">
+                    <span class="text-xl">📦</span> <span class="font-bold">Estoque</span>
+                </a>
+
+                <a href="/relatorios" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-blue-600/10 hover:text-blue-400 transition group {{ 'bg-blue-600/10 text-blue-400' if request.path == '/relatorios' }}">
+                    <span class="text-xl">📊</span> <span class="font-bold">Relatórios</span>
+                </a>
+
+                <a href="/usuarios" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-blue-600/10 hover:text-blue-400 transition group {{ 'bg-blue-600/10 text-blue-400' if request.path == '/usuarios' }}">
+                    <span class="text-xl">⚙️</span> <span class="font-bold">Config. Usuários</span>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- RODAPÉ: PERFIL E LOGOUT -->
+        <div class="p-4 border-t border-slate-700 bg-slate-800/50">
+            <div class="flex items-center gap-3 px-2 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-black text-white shadow-lg shadow-blue-900/20">
+                    {{ session['usuario'][0] | upper }}
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-sm font-bold text-white leading-none mb-1">{{ session['usuario'].capitalize() }}</span>
+                    <span class="text-[10px] text-blue-400 uppercase font-black tracking-tighter">{{ session['nivel'] }}</span>
+                </div>
+            </div>
+            <a href="/logout" class="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition text-xs font-black w-full justify-center shadow-lg">
+                SAIR DO SISTEMA
+            </a>
+        </div>
+    </nav>
+
+    <!-- ÁREA DE CONTEÚDO -->
+    <main class="flex-1 overflow-y-auto bg-[#0f172a] p-4 md:p-8 no-scrollbar">
+        {% block content %}{% endblock %}
+    </main>
+
+</body>
+</html>

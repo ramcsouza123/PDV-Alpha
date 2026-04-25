@@ -1,0 +1,89 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="max-w-7xl mx-auto h-full flex flex-col">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold flex items-center gap-3">👥 Gestão de Clientes</h2>
+        <div class="flex gap-3">
+            <!-- APENAS ADMIN PODE CADASTRAR -->
+            {% if session['nivel'] == 'admin' %}
+            <button onclick="abrirModal('cadastro')" class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold transition">+ NOVO CLIENTE</button>
+            {% endif %}
+
+            <!-- AMBOS PODEM VER EXTRATO -->
+            <button id="btn-extrato" onclick="abrirExtrato()" disabled class="bg-yellow-600 hover:bg-yellow-500 text-white px-4 py-2 rounded-lg font-bold transition opacity-50 cursor-not-allowed">📄 EXTRATO / PAGAR</button>
+
+            <!-- APENAS ADMIN PODE EDITAR E EXCLUIR -->
+            {% if session['nivel'] == 'admin' %}
+            <button id="btn-editar-cli" onclick="prepararEdicao()" disabled class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-bold transition opacity-50 cursor-not-allowed">✏️ EDITAR</button>
+            <button id="btn-excluir-cli" onclick="excluirCliente()" disabled class="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-lg font-bold transition opacity-50 cursor-not-allowed">🗑️ EXCLUIR</button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mb-6 relative">
+        <input type="text" id="filtro-cliente" class="w-full bg-gray-800 border border-gray-700 rounded-xl py-4 pl-10 pr-4 text-white focus:ring-2 focus:ring-blue-500" placeholder="Pesquisar cliente...">
+    </div>
+
+    <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden border border-gray-700 flex-1">
+        <table class="w-full text-left">
+            <thead class="bg-gray-900 text-gray-400 uppercase text-xs">
+                <tr><th class="p-4">ID</th><th class="p-4">Nome</th><th class="p-4">CPF</th><th class="p-4 text-right">Dívida Atual</th><th class="p-4 text-right">Disponível</th></tr>
+            </thead>
+            <tbody id="tabela-clientes" class="text-gray-300"></tbody>
+        </table>
+    </div>
+
+    <!-- MODAL CADASTRO (Só usado por admin) -->
+    <div id="modal-cliente" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-gray-800 w-full max-w-xl rounded-2xl border border-gray-700 p-8">
+            <h3 id="modal-titulo-cli" class="text-xl font-bold mb-6 text-white">Cadastro</h3>
+            <input type="hidden" id="cli-id-db">
+            <div class="space-y-4">
+                <input type="text" id="cli-nome" class="w-full bg-gray-900 border-none rounded p-3 text-white" placeholder="Nome">
+                <input type="text" id="cli-cpf" class="w-full bg-gray-900 border-none rounded p-3 text-white" placeholder="CPF">
+                <input type="number" id="cli-limite" class="w-full bg-gray-900 border-none rounded p-3 text-white" placeholder="Limite de Crédito">
+            </div>
+            <div class="flex gap-3 mt-8">
+                <button onclick="fecharModal()" class="flex-1 py-3 text-gray-400 font-bold hover:bg-gray-700 rounded-lg">CANCELAR</button>
+                <button onclick="processarSalvar()" class="flex-[2] bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg">SALVAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EXTRATO (Acesso geral) -->
+    <div id="modal-extrato" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-gray-800 w-full max-w-6xl rounded-2xl border border-gray-700 shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-gray-700 flex justify-between items-center bg-gray-900">
+                <div><h3 class="text-xl font-bold text-white" id="extrato-nome-cli">Extrato</h3><p class="text-red-400 font-bold" id="extrato-divida-total">Dívida: R$ 0,00</p></div>
+                <button onclick="fecharExtrato()" class="text-gray-400 text-4xl">&times;</button>
+            </div>
+            <div class="p-6 grid grid-cols-1 md:grid-cols-4 gap-6 overflow-hidden">
+                <div class="md:col-span-2 flex flex-col overflow-hidden">
+                    <p class="text-gray-500 text-xs font-bold uppercase mb-3">Histórico:</p>
+                    <div class="overflow-y-auto border border-gray-700 rounded-lg">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-900 text-gray-500 sticky top-0">
+                                <tr><th class="p-2 text-left">Data/Hora</th><th class="p-2 text-left">Tipo</th><th class="p-2 text-right">Valor</th></tr>
+                            </thead>
+                            <tbody id="lista-extrato" class="divide-y divide-gray-700 cursor-pointer"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="flex flex-col overflow-hidden bg-gray-900/40 p-4 rounded-lg border border-dashed border-gray-700">
+                    <p class="text-blue-400 text-xs font-bold uppercase mb-3">Detalhes:</p>
+                    <div class="overflow-y-auto flex-1"><ul id="detalhes-venda-itens" class="text-sm space-y-2 text-gray-300"></ul></div>
+                </div>
+                <div class="bg-gray-900 p-6 rounded-xl border border-gray-700 flex flex-col gap-4">
+                    <p class="text-center font-bold text-green-500 uppercase text-xs">Receber Pagamento</p>
+                    <input type="number" id="pag-divida-valor" class="w-full bg-gray-800 border-none rounded p-3 text-xl text-white text-center font-mono" placeholder="0.00">
+                    <select id="pag-divida-metodo" class="w-full bg-gray-800 border-none rounded p-3 text-white">
+                        <option value="Dinheiro">Dinheiro</option><option value="Pix">Pix</option><option value="Cartão">Cartão</option>
+                    </select>
+                    <button onclick="confirmarPagamentoDivida()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded-xl mt-4 shadow-lg transition">CONFIRMAR RECEBIMENTO</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/clientes.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - PDV Alpha</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 flex items-center justify-center h-screen">
+    <div class="bg-gray-800 p-10 rounded-2xl shadow-2xl w-96 border border-gray-700">
+        <h1 class="text-3xl font-black text-blue-500 text-center mb-8 italic">PDV ALPHA 2.0</h1>
+        
+        <div class="space-y-4">
+            <input type="text" id="user" class="w-full bg-gray-700 border-none rounded-lg p-4 text-white" placeholder="Usuário">
+            <input type="password" id="pass" class="w-full bg-gray-700 border-none rounded-lg p-4 text-white" placeholder="Senha">
+            <button onclick="fazerLogin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-lg transition uppercase tracking-widest">Entrar</button>
+        </div>
+        <p id="erro" class="text-red-500 text-center mt-4 text-sm hidden"></p>
+    </div>
+
+    <script>
+        async function fazerLogin() {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: document.getElementById('user').value, senha: document.getElementById('pass').value})
+            });
+            if (res.ok) window.location.href = '/';
+            else {
+                const e = document.getElementById('erro');
+                e.innerText = "Usuário ou senha incorretos";
+                e.classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto h-full flex flex-col">
+    <!-- Cabeçalho e Botões -->
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold flex items-center gap-3">📦 Gestão de Estoque</h2>
+        <div class="flex gap-3">
+            <button onclick="abrirModal('cadastro')" class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold transition">
+                + NOVO PRODUTO
+            </button>
+            <button id="btn-editar" onclick="prepararEdicao()" disabled class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-bold transition opacity-50 cursor-not-allowed">
+                ✏️ EDITAR
+            </button>
+            <button id="btn-excluir" onclick="excluirProduto()" disabled class="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-lg font-bold transition opacity-50 cursor-not-allowed">
+                🗑️ EXCLUIR
+            </button>
+        </div>
+    </div>
+
+    <!-- BARRA DE BUSCA -->
+    <div class="mb-6 relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <span class="text-gray-500">🔍</span>
+        </div>
+        <input type="text" id="filtro-estoque" 
+            class="w-full bg-gray-800 border border-gray-700 rounded-xl py-4 pl-10 pr-4 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition" 
+            placeholder="Pesquisar por Nome, Código Interno ou Código de Barras...">
+    </div>
+
+    <!-- Tabela de Produtos -->
+    <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden border border-gray-700 flex-1">
+        <div class="overflow-y-auto h-full">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-gray-900 text-gray-400 uppercase text-xs sticky top-0 z-10">
+                    <tr>
+                        <th class="p-4 border-b border-gray-700">ID / Código</th>
+                        <th class="p-4 border-b border-gray-700">Produto</th>
+                        <th class="p-4 border-b border-gray-700">Categoria</th>
+                        <th class="p-4 border-b border-gray-700 text-right">Custo</th>
+                        <th class="p-4 border-b border-gray-700 text-right">Venda</th>
+                        <th class="p-4 border-b border-gray-700 text-center">Qtd</th>
+                        <th class="p-4 border-b border-gray-700 text-center">Rentab.</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-produtos" class="text-gray-300">
+                    <!-- Preenchido via JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MODAL DE CADASTRO/EDIÇÃO (Igual ao anterior) -->
+    <div id="modal-produto" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-gray-800 w-full max-w-2xl rounded-2xl border border-gray-700 shadow-2xl overflow-hidden">
+            <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+                <h3 id="modal-titulo" class="text-xl font-bold">Novo Produto</h3>
+                <button onclick="fecharModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            
+            <div class="p-8 grid grid-cols-2 gap-6">
+                <div class="col-span-1">
+                    <label class="block text-gray-400 text-xs font-bold uppercase mb-1">Cód. Interno</label>
+                    <input type="number" id="prod-id" class="w-full bg-gray-900 border-none rounded p-3 text-white focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="col-span-1">
+                    <label class="block text-gray-400 text-xs font-bold uppercase mb-1">Cód. Barras</label>
+                    <input type="text" id="prod-barras" class="w-full bg-gray-900 border-none rounded p-3 text-white">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-gray-400 text-xs font-bold uppercase mb-1">Nome do Produto</label>
+                    <input type="text" id="prod-nome" class="w-full bg-gray-900 border-none rounded p-3 text-white">
+                </div>
+                <div class="col-span-1">
+                    <label class="block text-gray-400 text-xs font-bold uppercase mb-1">Categoria</label>
+                    <div class="flex gap-2">
+                        <select id="prod-categoria" class="flex-1 bg-gray-900 border-none rounded p-3 text-white"></select>
+                        <button onclick="addCategoria()" class="bg-blue-600 px-3 rounded hover:bg-blue-500">+</button>
+                    </div>
+                </div>
+                <div class="col-span-1">
+                    <label class="block text-gray-400 text-xs font-bold uppercase mb-1">Qtd em Estoque</label>
+                    <input type="number" id="prod-estoque" class="w-full bg-gray-900 border-none rounded p-3 text-white">
+                </div>
+                <div class="col-span-1">
+                    <label class="block text-gray-400 text-xs font-bold uppercase mb-1">Preço Custo (R$)</label>
+                    <input type="number" id="prod-custo" step="0.01" class="w-full bg-gray-900 border-none rounded p-3 text-white">
+                </div>
+                <div class="col-span-1">
+                    <label class="block text-gray-400 text-xs font-bold uppercase mb-1">Preço Venda (R$)</label>
+                    <input type="number" id="prod-venda" step="0.01" class="w-full bg-gray-900 border-none rounded p-3 text-white">
+                </div>
+            </div>
+
+            <div class="p-6 bg-gray-900/50 flex gap-3">
+                <button onclick="fecharModal()" class="flex-1 py-3 text-gray-400 font-bold hover:bg-gray-700 rounded-lg">CANCELAR</button>
+                <button onclick="processarSalvar()" class="flex-[2] bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg">
+                    SALVAR ALTERAÇÕES
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/estoque.js') }}"></script>
+{% endblock %}

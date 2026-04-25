@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto h-full flex flex-col gap-6">
+    <div class="flex justify-between items-center">
+        <h2 class="text-3xl font-bold flex items-center gap-3">📊 Relatórios Financeiros</h2>
+        <button id="btn-cancelar-venda" onclick="cancelarVenda()" disabled 
+            class="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-lg font-black transition opacity-50 cursor-not-allowed shadow-lg">
+            ❌ CANCELAR VENDA SELECIONADA
+        </button>
+    </div>
+
+    <!-- CARDS DASHBOARD -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
+            <p class="text-gray-400 text-xs font-bold uppercase mb-1">Custo Estoque</p>
+            <p id="card-custo-estoque" class="text-2xl font-black text-white">R$ 0,00</p>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
+            <p class="text-gray-400 text-xs font-bold uppercase mb-1">Venda Estoque</p>
+            <p id="card-venda-estoque" class="text-2xl font-black text-blue-500">R$ 0,00</p>
+        </div>
+        <div class="bg-green-900/20 p-6 rounded-2xl border border-green-500/30">
+            <p class="text-green-400 text-xs font-bold uppercase mb-1">Lucro em Gôndola</p>
+            <p id="card-lucro-estoque" class="text-2xl font-black text-green-500">R$ 0,00</p>
+        </div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex flex-wrap items-center gap-4">
+                <div class="flex gap-2">
+                    <button onclick="carregarVendas('hoje')" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-xs font-bold">Hoje</button>
+                    <button onclick="carregarVendas('mes')" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-xs font-bold">Mês</button>
+                </div>
+                <div class="flex items-center gap-2 bg-gray-900 p-2 rounded-xl border border-gray-700">
+                    <input type="date" id="filtro-inicio" class="bg-transparent border-none text-xs text-white">
+                    <span class="text-gray-600">até</span>
+                    <input type="date" id="filtro-fim" class="bg-transparent border-none text-xs text-white">
+                    <button onclick="carregarVendas('periodo')" class="bg-blue-600 px-4 py-1 rounded-lg text-[10px] font-black uppercase">Filtrar</button>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="text-gray-400 text-[10px] uppercase font-bold">Resumo do Período:</p>
+                <p id="resumo-venda-periodo" class="text-2xl font-black text-white">R$ 0,00</p>
+                <p id="resumo-lucro-periodo" class="text-sm font-bold text-green-500">Lucro: R$ 0,00</p>
+            </div>
+        </div>
+
+        <!-- TABELA -->
+        <div class="mt-8 rounded-xl overflow-hidden border border-gray-700">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-gray-900 text-gray-500 uppercase font-bold">
+                    <tr>
+                        <th class="p-4">ID</th>
+                        <th class="p-4">Data/Hora</th>
+                        <th class="p-4">Cliente</th>
+                        <th class="p-4">Pagamento</th>
+                        <th class="p-4 text-right">Total</th>
+                        <th class="p-4 text-right">Lucro</th>
+                        <th class="p-4 text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-vendas" class="divide-y divide-gray-700 text-gray-300"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/relatorios.js') }}"></script>
+{% endblock %}

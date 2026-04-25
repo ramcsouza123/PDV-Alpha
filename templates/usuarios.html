@@ -1,0 +1,100 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto h-full flex flex-col gap-8">
+    <h2 class="text-3xl font-bold flex items-center gap-3">⚙️ Configuração de Usuários</h2>
+
+    <!-- Formulário de Cadastro -->
+    <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl">
+        <h4 class="text-sm font-bold text-gray-400 uppercase mb-6">Cadastrar Novo Funcionário</h4>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <input type="text" id="new-username" class="bg-gray-900 border-none rounded-lg p-3 text-white" placeholder="Nome de usuário (Login)">
+            <input type="password" id="new-password" class="bg-gray-900 border-none rounded-lg p-3 text-white" placeholder="Senha">
+            <select id="new-level" class="bg-gray-900 border-none rounded-lg p-3 text-white">
+                <option value="operador">Operador (Só PDV)</option>
+                <option value="admin">Administrador (Total)</option>
+            </select>
+        </div>
+        <button onclick="salvarUsuario()" class="mt-6 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-lg transition shadow-lg">
+            CRIAR CONTA
+        </button>
+    </div>
+
+    <!-- Lista de Usuários -->
+    <div class="bg-gray-800 rounded-2xl border border-gray-700 shadow-xl overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-gray-900 text-gray-400 uppercase text-xs">
+                <tr>
+                    <th class="p-4">Usuário</th>
+                    <th class="p-4">Nível de Acesso</th>
+                    <th class="p-4 text-center">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-usuarios" class="divide-y divide-gray-700">
+                <!-- JS preenche aqui -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    async function carregarUsuarios() {
+        const res = await fetch('/api/usuarios');
+        const users = await res.json();
+        const tbody = document.getElementById('tabela-usuarios');
+        tbody.innerHTML = '';
+
+        users.forEach(u => {
+            tbody.innerHTML += `
+                <tr class="hover:bg-gray-700/30 transition">
+                    <td class="p-4 font-bold text-white">${u.username}</td>
+                    <td class="p-4">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase ${u.nivel === 'admin' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}">
+                            ${u.nivel}
+                        </span>
+                    </td>
+                    <td class="p-4 text-center">
+                        ${u.username !== 'admin' ? `<button onclick="excluirUser(${u.id})" class="text-red-500 hover:text-red-400 text-sm font-bold">Excluir</button>` : '<span class="text-gray-600 text-xs italic">Protegido</span>'}
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    async function salvarUsuario() {
+        const username = document.getElementById('new-username').value;
+        const senha = document.getElementById('new-password').value;
+        const nivel = document.getElementById('new-level').value;
+
+        if(!username || !senha) return alert("Preencha todos os campos!");
+
+        const res = await fetch('/api/usuarios', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username, senha, nivel})
+        });
+
+        if(res.ok) {
+            alert("Usuário criado!");
+            document.getElementById('new-username').value = '';
+            document.getElementById('new-password').value = '';
+            carregarUsuarios();
+        } else {
+            const err = await res.json();
+            alert(err.msg);
+        }
+    }
+
+    async function excluirUser(id) {
+        if(!confirm("Deseja realmente remover este acesso?")) return;
+        const res = await fetch(`/api/usuarios/excluir/${id}`, {method: 'DELETE'});
+        if(res.ok) carregarUsuarios();
+        else {
+            const err = await res.json();
+            alert(err.msg);
+        }
+    }
+
+    carregarUsuarios();
+</script>
+{% endblock %}
